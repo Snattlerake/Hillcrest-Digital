@@ -1,0 +1,295 @@
+
+/* GENERAL STYLING */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    color: #202b3c;
+    background-color: #ffffff;
+    line-height: 1.6;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+
+/* NAVIGATION BAR */
+
+.navbar {
+    height: 80px;
+    padding: 0 8%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: white;
+    border-bottom: 1px solid #e8edf3;
+}
+
+.logo {
+    font-size: 23px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #163b69;
+}
+
+nav {
+    display: flex;
+    align-items: center;
+    gap: 35px;
+}
+
+nav a {
+    font-size: 14px;
+    font-weight: 600;
+    color: #4b5563;
+    transition: color 0.2s;
+}
+
+nav a:hover,
+nav a.active {
+    color: #2363a5;
+}
+
+nav .book-button {
+    background-color: #1e4e82;
+    color: white;
+    padding: 11px 23px;
+    border-radius: 4px;
+}
+
+nav .book-button:hover {
+    background-color: #163b69;
+    color: white;
+}
+
+
+/* HERO SECTION */
+
+.hero {
+    min-height: 460px;
+    background-color: #eaf1f8;
+    display: flex;
+    align-items: center;
+    padding: 70px 12%;
+}
+
+.hero-content {
+    max-width: 600px;
+}
+
+.eyebrow {
+    color: #3974ae;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    margin-bottom: 15px;
+}
+
+.hero h1 {
+    font-size: 58px;
+    line-height: 1.1;
+    color: #163b69;
+    margin-bottom: 22px;
+}
+
+.hero-description {
+    color: #596779;
+    font-size: 17px;
+    max-width: 450px;
+    margin-bottom: 30px;
+}
+
+.primary-button {
+    display: inline-block;
+    background-color: #1e4e82;
+    color: white;
+    padding: 14px 27px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 700;
+    transition: background-color 0.2s;
+}
+
+.primary-button:hover {
+    background-color: #163b69;
+}
+
+
+/* GALLERY SECTION */
+
+.gallery-section {
+    padding: 85px 8%;
+}
+
+.section-heading {
+    text-align: center;
+    margin-bottom: 45px;
+}
+
+.section-heading h2 {
+    color: #163b69;
+    font-size: 34px;
+    margin-bottom: 10px;
+}
+
+.section-heading > p:last-child {
+    color: #778395;
+}
+
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.gallery-item {
+    height: 300px;
+    background-color: #e5eaf0;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s;
+}
+
+.gallery-item:hover img {
+    transform: scale(1.04);
+}
+
+
+/* CALL TO ACTION */
+
+.cta-section {
+    background-color: #163b69;
+    color: white;
+    text-align: center;
+    padding: 65px 20px;
+}
+
+.cta-section h2 {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.cta-section p {
+    color: #d0ddec;
+    margin-bottom: 25px;
+}
+
+.cta-section .primary-button {
+    background-color: white;
+    color: #163b69;
+}
+
+.cta-section .primary-button:hover {
+    background-color: #eaf1f8;
+}
+
+
+/* FOOTER */
+
+footer {
+    background-color: #102b4b;
+    color: white;
+    padding: 45px 8% 20px;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    gap: 30px;
+    margin-bottom: 35px;
+}
+
+.footer-content h3 {
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+
+.footer-content p {
+    color: #c0cede;
+    font-size: 14px;
+}
+
+.copyright {
+    border-top: 1px solid #34506e;
+    padding-top: 20px;
+    text-align: center;
+    color: #a9bacd;
+    font-size: 12px;
+}
+
+
+/* MOBILE RESPONSIVENESS */
+
+@media (max-width: 768px) {
+
+    .navbar {
+        height: auto;
+        padding: 20px 5%;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    nav {
+        gap: 18px;
+    }
+
+    nav a {
+        font-size: 12px;
+    }
+
+    .hero {
+        padding: 65px 8%;
+        min-height: 400px;
+    }
+
+    .hero h1 {
+        font-size: 43px;
+    }
+
+    .gallery-section {
+        padding: 60px 5%;
+    }
+
+    .gallery {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .gallery-item {
+        height: 220px;
+    }
+
+    .section-heading h2 {
+        font-size: 27px;
+    }
+
+    .footer-content {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 450px) {
+
+    .gallery {
+        grid-template-columns: 1fr;
+    }
+
+    .gallery-item {
+        height: 280px;
+    }
+
+}
