@@ -1,7 +1,23 @@
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
+
+from psycopg.rows import dict_row
 
 from app.database import get_connection
+
+
+def validate_appointment_time(value: datetime):
+    """Validate timezone and 15-minute appointment intervals."""
+
+    if value.tzinfo is None or value.utcoffset() is None:
+        raise ValueError("Appointment time must include a valid timezone.")
+
+    if (
+        value.minute % 15 != 0
+        or value.second != 0
+        or value.microsecond != 0
+    ):
+        raise ValueError("Appointments must start on 15-minute intervals.")
 
 
 def create_appointment(
@@ -19,11 +35,7 @@ def create_appointment(
     if duration_minutes < 15 or duration_minutes % 15 != 0:
         raise ValueError("Duration must be a multiple of 15 minutes.")
 
-    if starts_at.minute % 15 != 0 or starts_at.second != 0:
-        raise ValueError("Appointments must start on 15-minute intervals.")
-
-    if starts_at.tzinfo is None:
-        raise ValueError("Appointment time must include a timezone.")
+    validate_appointment_time(starts_at)
 
     query = """
         INSERT INTO appointments (
@@ -41,7 +53,7 @@ def create_appointment(
     """
 
     with get_connection() as conn:
-        with conn.cursor() as cur:
+        with conn.cursor(row_factory=dict_row) as cur:
             cur.execute(
                 query,
                 (
@@ -75,7 +87,7 @@ def get_appointments(
     """
 
     with get_connection() as conn:
-        with conn.cursor() as cur:
+        with conn.cursor(row_factory=dict_row) as cur:
             cur.execute(query, (company_id, start_date, end_date))
             return cur.fetchall()
 
@@ -91,7 +103,7 @@ def get_appointment(company_id: int, appointment_id: int):
     """
 
     with get_connection() as conn:
-        with conn.cursor() as cur:
+        with conn.cursor(row_factory=dict_row) as cur:
             cur.execute(query, (company_id, appointment_id))
             return cur.fetchone()
 
@@ -109,7 +121,7 @@ def cancel_appointment(company_id: int, appointment_id: int):
     """
 
     with get_connection() as conn:
-        with conn.cursor() as cur:
+        with conn.cursor(row_factory=dict_row) as cur:
             cur.execute(query, (company_id, appointment_id))
             return cur.fetchone()
 
@@ -121,11 +133,7 @@ def reschedule_appointment(
 ):
     """Change the start time of an existing appointment."""
 
-    if new_starts_at.tzinfo is None:
-        raise ValueError("Appointment time must include a timezone.")
-
-    if new_starts_at.minute % 15 != 0 or new_starts_at.second != 0:
-        raise ValueError("Appointments must start on 15-minute intervals.")
+    validate_appointment_time(new_starts_at)
 
     query = """
         UPDATE appointments
@@ -137,7 +145,7 @@ def reschedule_appointment(
     """
 
     with get_connection() as conn:
-        with conn.cursor() as cur:
+        with conn.cursor(row_factory=dict_row) as cur:
             cur.execute(
                 query,
                 (new_starts_at, company_id, appointment_id),
