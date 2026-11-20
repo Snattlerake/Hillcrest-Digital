@@ -1,4 +1,7 @@
+
 from fastapi import FastAPI
+
+from app.api.routes import appointments
 
 app = FastAPI(
     title="Hillcrest Digital API",
@@ -6,11 +9,15 @@ app = FastAPI(
     version="1.0.0"
 )
 
+app.include_router(appointments.router)
+
+
 @app.get("/")
 def root():
     return {
         "message": "Hillcrest Digital API is running!"
     }
+
 
 @app.get("/health")
 def health():
