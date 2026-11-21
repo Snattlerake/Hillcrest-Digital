@@ -7,6 +7,7 @@
     <title>Calendar Test | Hillcrest Digital</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
 
     <header class="navbar">
@@ -31,10 +32,16 @@
 
         <section class="workspace calendar-workspace">
 
+            <!-- Calendar heading -->
+
             <div class="calendar-heading">
                 <div>
-                    <span class="calendar-eyebrow">APPOINTMENT MANAGEMENT</span>
+                    <span class="calendar-eyebrow">
+                        APPOINTMENT MANAGEMENT
+                    </span>
+
                     <h1>Company Calendar</h1>
+
                     <p>Viewing appointments for Company #1</p>
                 </div>
 
@@ -44,42 +51,86 @@
                 </div>
             </div>
 
+
+            <!-- Calendar panel -->
+
             <section class="calendar-panel">
+
+                <!-- Toolbar -->
 
                 <div class="calendar-toolbar">
 
                     <div class="calendar-month-controls">
-                        <button id="previousMonth" class="calendar-nav-button"
-                                aria-label="Previous month">
+
+                        <button
+                            id="previousMonth"
+                            class="calendar-nav-button"
+                            aria-label="Previous month"
+                            type="button"
+                        >
                             &#8592;
                         </button>
 
                         <h2 id="monthTitle">Loading...</h2>
 
-                        <button id="nextMonth" class="calendar-nav-button"
-                                aria-label="Next month">
+                        <button
+                            id="nextMonth"
+                            class="calendar-nav-button"
+                            aria-label="Next month"
+                            type="button"
+                        >
                             &#8594;
                         </button>
+
                     </div>
 
                     <div class="calendar-actions">
-                        <button id="todayButton" class="calendar-secondary-button">
+
+                        <button
+                            id="todayButton"
+                            class="calendar-secondary-button"
+                            type="button"
+                        >
                             Today
                         </button>
 
-                        <button id="refreshButton" class="calendar-primary-button">
+                        <button
+                            id="refreshButton"
+                            class="calendar-primary-button"
+                            type="button"
+                        >
                             &#8635; Refresh
                         </button>
+
                     </div>
 
                 </div>
 
+
+                <!-- Appointment summary -->
+
                 <div class="calendar-summary">
-                    <span id="appointmentCount">Loading appointments...</span>
+                    <span id="appointmentCount">
+                        Loading appointments...
+                    </span>
+
                     <span id="dateRange"></span>
                 </div>
 
-                <div class="calendar-grid">
+
+                <!--
+                    THE ACTUAL CALENDAR GRID
+
+                    All weekday headings and all date cells
+                    are direct children of this one grid.
+
+                    Seven columns.
+                    No nested date grid.
+                -->
+
+                <div class="calendar-grid" id="calendarGrid">
+
+                    <!-- Weekday headings -->
 
                     <div class="calendar-weekday">MON</div>
                     <div class="calendar-weekday">TUE</div>
@@ -89,25 +140,37 @@
                     <div class="calendar-weekday">SAT</div>
                     <div class="calendar-weekday">SUN</div>
 
-                    <div id="calendarDays" class="calendar-days">
-                        <div class="calendar-loading">
-                            Loading calendar...
-                        </div>
+                    <!-- JavaScript inserts date cells here -->
+
+                    <div class="calendar-loading">
+                        Loading calendar...
                     </div>
 
                 </div>
 
-                <div id="calendarError" class="calendar-error" hidden></div>
+
+                <!-- API error display -->
+
+                <div
+                    id="calendarError"
+                    class="calendar-error"
+                    hidden
+                ></div>
 
             </section>
 
+
+            <!-- Calendar information -->
+
             <section class="calendar-information">
+
                 <div class="calendar-info-heading">
                     <h3>Calendar information</h3>
                     <span>API Connected View</span>
                 </div>
 
                 <div class="calendar-info-grid">
+
                     <div>
                         <span class="info-label">Company ID</span>
                         <strong>1</strong>
@@ -127,12 +190,15 @@
                         <span class="info-label">Time display</span>
                         <strong>Local timezone</strong>
                     </div>
+
                 </div>
+
             </section>
 
         </section>
 
     </main>
+
 
     <footer class="footer">
         <div class="container footer-inner">
@@ -149,17 +215,16 @@
         // =========================================
 
         const COMPANY_ID = 1;
-
-        // Nginx forwards this path to FastAPI.
         const API_URL = "/appointments/";
 
 
         // =========================================
-        // ELEMENTS
+        // HTML ELEMENT REFERENCES
         // =========================================
 
+        const calendarGrid = document.getElementById("calendarGrid");
+
         const monthTitle = document.getElementById("monthTitle");
-        const calendarDays = document.getElementById("calendarDays");
         const appointmentCount = document.getElementById("appointmentCount");
         const connectionStatus = document.getElementById("connectionStatus");
         const calendarError = document.getElementById("calendarError");
@@ -192,28 +257,48 @@
         // =========================================
 
         function dateKey(date) {
+
             const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, "0");
-            const day = String(date.getDate()).padStart(2, "0");
+
+            const month = String(
+                date.getMonth() + 1
+            ).padStart(2, "0");
+
+            const day = String(
+                date.getDate()
+            ).padStart(2, "0");
 
             return `${year}-${month}-${day}`;
         }
 
 
-        // Format a JavaScript Date with its local timezone offset.
-        // Example: 2026-11-21T00:00:00-06:00
+        // Convert a local JavaScript date into an ISO
+        // timestamp containing the local UTC offset.
 
         function toLocalISO(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, "0");
-            const day = String(date.getDate()).padStart(2, "0");
 
-            const hours = String(date.getHours()).padStart(2, "0");
-            const minutes = String(date.getMinutes()).padStart(2, "0");
+            const year = date.getFullYear();
+
+            const month = String(
+                date.getMonth() + 1
+            ).padStart(2, "0");
+
+            const day = String(
+                date.getDate()
+            ).padStart(2, "0");
+
+            const hours = String(
+                date.getHours()
+            ).padStart(2, "0");
+
+            const minutes = String(
+                date.getMinutes()
+            ).padStart(2, "0");
 
             const offset = -date.getTimezoneOffset();
 
             const sign = offset >= 0 ? "+" : "-";
+
             const offsetHours = String(
                 Math.floor(Math.abs(offset) / 60)
             ).padStart(2, "0");
@@ -222,11 +307,16 @@
                 Math.abs(offset) % 60
             ).padStart(2, "0");
 
-            return `${year}-${month}-${day}T${hours}:${minutes}:00${sign}${offsetHours}:${offsetMinutes}`;
+            return (
+                `${year}-${month}-${day}` +
+                `T${hours}:${minutes}:00` +
+                `${sign}${offsetHours}:${offsetMinutes}`
+            );
         }
 
 
         function formatTime(dateString) {
+
             const date = new Date(dateString);
 
             return date.toLocaleTimeString([], {
@@ -237,6 +327,7 @@
 
 
         function formatDate(date) {
+
             return date.toLocaleDateString([], {
                 month: "short",
                 day: "numeric"
@@ -245,7 +336,37 @@
 
 
         // =========================================
-        // FETCH APPOINTMENTS
+        // CALENDAR GRID HELPERS
+        // =========================================
+
+        // Remove previous date cells and loading messages.
+        // The seven weekday headings remain untouched.
+
+        function clearDateCells() {
+
+            const oldCells = calendarGrid.querySelectorAll(
+                ".calendar-day, .calendar-loading"
+            );
+
+            oldCells.forEach(cell => cell.remove());
+        }
+
+
+        function showCalendarLoading() {
+
+            clearDateCells();
+
+            const loading = document.createElement("div");
+
+            loading.className = "calendar-loading";
+            loading.textContent = "Fetching appointments...";
+
+            calendarGrid.appendChild(loading);
+        }
+
+
+        // =========================================
+        // FETCH APPOINTMENTS FROM FASTAPI
         // =========================================
 
         async function loadAppointments() {
@@ -257,46 +378,54 @@
             connectionStatus.textContent = "Loading...";
             appointmentCount.textContent = "Loading appointments...";
 
-            calendarDays.innerHTML = `
-                <div class="calendar-loading">
-                    Fetching appointments...
-                </div>
-            `;
-
             refreshButton.disabled = true;
+
+            showCalendarLoading();
 
             try {
 
-                // Find the first day of the displayed month.
+                // First day of the displayed month.
+
                 const firstDay = new Date(
                     displayedMonth.getFullYear(),
                     displayedMonth.getMonth(),
                     1
                 );
 
-                // Find the last day of the displayed month.
+                // Last day of the displayed month.
+
                 const lastDay = new Date(
                     displayedMonth.getFullYear(),
                     displayedMonth.getMonth() + 1,
                     0
                 );
 
-                // Expand the request to include the full calendar grid.
-                // JavaScript uses Sunday = 0, so convert to Monday = 0.
+                // Convert Sunday-based JavaScript weekday
+                // numbering into a Monday-first calendar.
 
-                const gridStart = new Date(firstDay);
                 const startOffset = (firstDay.getDay() + 6) % 7;
 
-                gridStart.setDate(
-                    gridStart.getDate() - startOffset
+                // First visible calendar date.
+
+                const gridStart = new Date(
+                    firstDay.getFullYear(),
+                    firstDay.getMonth(),
+                    firstDay.getDate() - startOffset
                 );
 
-                const gridEnd = new Date(lastDay);
-                const endOffset = (7 - gridEnd.getDay()) % 7;
+                // Last visible calendar date, plus one day.
+                // The API end date is exclusive.
 
-                gridEnd.setDate(
-                    gridEnd.getDate() + endOffset + 1
+                const endOffset = (7 - lastDay.getDay()) % 7;
+
+                const gridEnd = new Date(
+                    lastDay.getFullYear(),
+                    lastDay.getMonth(),
+                    lastDay.getDate() + endOffset + 1
                 );
+
+
+                // Build API query parameters.
 
                 const params = new URLSearchParams({
                     company_id: COMPANY_ID,
@@ -304,7 +433,11 @@
                     end_date: toLocalISO(gridEnd)
                 });
 
-                const requestURL = `${API_URL}?${params.toString()}`;
+                const requestURL =
+                    `${API_URL}?${params.toString()}`;
+
+
+                // Make HTTP GET request.
 
                 const response = await fetch(requestURL, {
                     method: "GET",
@@ -313,13 +446,16 @@
                     }
                 });
 
+
                 if (!response.ok) {
                     throw new Error(
                         `Server returned HTTP ${response.status}`
                     );
                 }
 
+
                 const data = await response.json();
+
 
                 if (!Array.isArray(data)) {
                     throw new Error(
@@ -327,19 +463,32 @@
                     );
                 }
 
-                // Ignore an older request if the user changed months.
+
+                // Ignore stale responses if the user
+                // navigated to another month meanwhile.
+
                 if (currentRequest !== requestNumber) {
                     return;
                 }
 
+
                 appointments = data;
 
                 connectionStatus.textContent = "Connected";
+
                 appointmentCount.textContent =
-                    `${appointments.length} appointment${appointments.length === 1 ? "" : "s"}`;
+                    `${appointments.length} appointment` +
+                    `${appointments.length === 1 ? "" : "s"}`;
+
+                const finalVisibleDate = new Date(
+                    gridEnd.getFullYear(),
+                    gridEnd.getMonth(),
+                    gridEnd.getDate() - 1
+                );
 
                 dateRange.textContent =
-                    `${formatDate(gridStart)} – ${formatDate(new Date(gridEnd.getTime() - 86400000))}`;
+                    `${formatDate(gridStart)} – ${formatDate(finalVisibleDate)}`;
+
 
                 renderCalendar();
 
@@ -354,17 +503,19 @@
                 appointments = [];
 
                 connectionStatus.textContent = "Connection error";
-                appointmentCount.textContent = "Unable to load appointments";
 
-                calendarDays.innerHTML = `
-                    <div class="calendar-loading">
-                        Calendar data could not be loaded.
-                    </div>
-                `;
+                appointmentCount.textContent =
+                    "Unable to load appointments";
+
+                dateRange.textContent = "";
 
                 calendarError.hidden = false;
+
                 calendarError.textContent =
                     `Could not retrieve appointments: ${error.message}`;
+
+                // Still render the dates, even when the API fails.
+                renderCalendar();
 
             } finally {
 
@@ -382,15 +533,21 @@
 
         function renderCalendar() {
 
-            monthTitle.textContent = displayedMonth.toLocaleDateString(
-                [],
-                {
+            // Update month heading.
+
+            monthTitle.textContent =
+                displayedMonth.toLocaleDateString([], {
                     month: "long",
                     year: "numeric"
-                }
-            );
+                });
 
-            calendarDays.innerHTML = "";
+
+            // Remove old date cells, retaining weekday headings.
+
+            clearDateCells();
+
+
+            // Calculate month boundaries.
 
             const firstDay = new Date(
                 displayedMonth.getFullYear(),
@@ -404,14 +561,20 @@
                 0
             );
 
+
+            // Calculate the first visible date.
+            // Monday is the first column.
+
             const startOffset = (firstDay.getDay() + 6) % 7;
 
-            const gridStart = new Date(firstDay);
-            gridStart.setDate(
-                gridStart.getDate() - startOffset
+            const gridStart = new Date(
+                firstDay.getFullYear(),
+                firstDay.getMonth(),
+                firstDay.getDate() - startOffset
             );
 
-            // Group appointments by their local calendar date.
+
+            // Group appointments by local calendar date.
 
             const appointmentsByDate = {};
 
@@ -440,18 +603,21 @@
             });
 
 
-            // Always show complete weeks.
+            // Calculate the number of calendar cells needed.
 
-            const totalDays = Math.ceil(
-                (startOffset + lastDay.getDate()) / 7
-            ) * 7;
+            const totalDays =
+                Math.ceil(
+                    (startOffset + lastDay.getDate()) / 7
+                ) * 7;
 
+
+            // Generate each date cell.
 
             for (let i = 0; i < totalDays; i++) {
 
-                const currentDate = new Date(gridStart);
-
-                currentDate.setDate(
+                const currentDate = new Date(
+                    gridStart.getFullYear(),
+                    gridStart.getMonth(),
                     gridStart.getDate() + i
                 );
 
@@ -467,6 +633,9 @@
                     appointmentsByDate[key] || [];
 
 
+                // Create the date cell.
+                // IMPORTANT: It is appended directly to calendarGrid.
+
                 const dayCell = document.createElement("div");
 
                 dayCell.className = "calendar-day";
@@ -480,7 +649,7 @@
                 }
 
 
-                // Day number.
+                // Date number.
 
                 const dayNumber = document.createElement("div");
 
@@ -490,24 +659,34 @@
                 dayCell.appendChild(dayNumber);
 
 
-                // Appointment cards.
+                // Appointment container inside this date cell.
 
                 const appointmentList = document.createElement("div");
 
-                appointmentList.className = "calendar-appointment-list";
+                appointmentList.className =
+                    "calendar-appointment-list";
+
+
+                // Sort appointments chronologically.
 
                 dayAppointments.sort((a, b) => {
+
                     return new Date(a.starts_at) -
                            new Date(b.starts_at);
+
                 });
 
+
+                // Create appointment cards.
 
                 dayAppointments.forEach(appointment => {
 
                     const appointmentCard =
                         document.createElement("div");
 
-                    appointmentCard.className = "calendar-appointment";
+                    appointmentCard.className =
+                        "calendar-appointment";
+
 
                     if (appointment.status === "cancelled") {
                         appointmentCard.classList.add("cancelled");
@@ -521,13 +700,15 @@
                     const time = document.createElement("span");
 
                     time.className = "appointment-time";
-                    time.textContent = formatTime(appointment.starts_at);
+                    time.textContent =
+                        formatTime(appointment.starts_at);
 
 
                     const service = document.createElement("span");
 
                     service.className = "appointment-service";
-                    service.textContent = appointment.service || "Appointment";
+                    service.textContent =
+                        appointment.service || "Appointment";
 
 
                     const customer = document.createElement("span");
@@ -558,7 +739,12 @@
 
                 dayCell.appendChild(appointmentList);
 
-                calendarDays.appendChild(dayCell);
+
+                // THIS IS THE IMPORTANT PART:
+                // Every date cell goes directly into the SAME grid
+                // as the weekday headings.
+
+                calendarGrid.appendChild(dayCell);
 
             }
 
@@ -566,13 +752,15 @@
 
 
         // =========================================
-        // NAVIGATION BUTTONS
+        // MONTH NAVIGATION
         // =========================================
 
         previousMonthButton.addEventListener("click", () => {
 
-            displayedMonth.setMonth(
-                displayedMonth.getMonth() - 1
+            displayedMonth = new Date(
+                displayedMonth.getFullYear(),
+                displayedMonth.getMonth() - 1,
+                1
             );
 
             loadAppointments();
@@ -582,8 +770,10 @@
 
         nextMonthButton.addEventListener("click", () => {
 
-            displayedMonth.setMonth(
-                displayedMonth.getMonth() + 1
+            displayedMonth = new Date(
+                displayedMonth.getFullYear(),
+                displayedMonth.getMonth() + 1,
+                1
             );
 
             loadAppointments();
@@ -605,12 +795,14 @@
 
 
         refreshButton.addEventListener("click", () => {
+
             loadAppointments();
+
         });
 
 
         // =========================================
-        // INITIALIZE
+        // INITIALIZE CALENDAR
         // =========================================
 
         loadAppointments();
