@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test | Hillcrest Digital</title>
+    <title>Calendar Test | Hillcrest Digital</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -29,8 +29,106 @@
 
     <main class="container">
 
-        <!-- YOUR CONTENT GOES HERE -->
-        <section class="workspace">
+        <section class="workspace calendar-workspace">
+
+            <div class="calendar-heading">
+                <div>
+                    <span class="calendar-eyebrow">APPOINTMENT MANAGEMENT</span>
+                    <h1>Company Calendar</h1>
+                    <p>Viewing appointments for Company #1</p>
+                </div>
+
+                <div class="calendar-status">
+                    <span class="status-dot"></span>
+                    <span id="connectionStatus">Connecting...</span>
+                </div>
+            </div>
+
+            <section class="calendar-panel">
+
+                <div class="calendar-toolbar">
+
+                    <div class="calendar-month-controls">
+                        <button id="previousMonth" class="calendar-nav-button"
+                                aria-label="Previous month">
+                            &#8592;
+                        </button>
+
+                        <h2 id="monthTitle">Loading...</h2>
+
+                        <button id="nextMonth" class="calendar-nav-button"
+                                aria-label="Next month">
+                            &#8594;
+                        </button>
+                    </div>
+
+                    <div class="calendar-actions">
+                        <button id="todayButton" class="calendar-secondary-button">
+                            Today
+                        </button>
+
+                        <button id="refreshButton" class="calendar-primary-button">
+                            &#8635; Refresh
+                        </button>
+                    </div>
+
+                </div>
+
+                <div class="calendar-summary">
+                    <span id="appointmentCount">Loading appointments...</span>
+                    <span id="dateRange"></span>
+                </div>
+
+                <div class="calendar-grid">
+
+                    <div class="calendar-weekday">MON</div>
+                    <div class="calendar-weekday">TUE</div>
+                    <div class="calendar-weekday">WED</div>
+                    <div class="calendar-weekday">THU</div>
+                    <div class="calendar-weekday">FRI</div>
+                    <div class="calendar-weekday">SAT</div>
+                    <div class="calendar-weekday">SUN</div>
+
+                    <div id="calendarDays" class="calendar-days">
+                        <div class="calendar-loading">
+                            Loading calendar...
+                        </div>
+                    </div>
+
+                </div>
+
+                <div id="calendarError" class="calendar-error" hidden></div>
+
+            </section>
+
+            <section class="calendar-information">
+                <div class="calendar-info-heading">
+                    <h3>Calendar information</h3>
+                    <span>API Connected View</span>
+                </div>
+
+                <div class="calendar-info-grid">
+                    <div>
+                        <span class="info-label">Company ID</span>
+                        <strong>1</strong>
+                    </div>
+
+                    <div>
+                        <span class="info-label">Data source</span>
+                        <strong>/appointments/</strong>
+                    </div>
+
+                    <div>
+                        <span class="info-label">HTTP method</span>
+                        <strong>GET</strong>
+                    </div>
+
+                    <div>
+                        <span class="info-label">Time display</span>
+                        <strong>Local timezone</strong>
+                    </div>
+                </div>
+            </section>
 
         </section>
 
@@ -42,6 +140,482 @@
             <a href="index.html">Home</a>
         </div>
     </footer>
+
+
+    <script>
+
+        // =========================================
+        // CONFIGURATION
+        // =========================================
+
+        const COMPANY_ID = 1;
+
+        // Nginx forwards this path to FastAPI.
+        const API_URL = "/appointments/";
+
+
+        // =========================================
+        // ELEMENTS
+        // =========================================
+
+        const monthTitle = document.getElementById("monthTitle");
+        const calendarDays = document.getElementById("calendarDays");
+        const appointmentCount = document.getElementById("appointmentCount");
+        const connectionStatus = document.getElementById("connectionStatus");
+        const calendarError = document.getElementById("calendarError");
+        const dateRange = document.getElementById("dateRange");
+
+        const previousMonthButton = document.getElementById("previousMonth");
+        const nextMonthButton = document.getElementById("nextMonth");
+        const todayButton = document.getElementById("todayButton");
+        const refreshButton = document.getElementById("refreshButton");
+
+
+        // =========================================
+        // CALENDAR STATE
+        // =========================================
+
+        const today = new Date();
+
+        let displayedMonth = new Date(
+            today.getFullYear(),
+            today.getMonth(),
+            1
+        );
+
+        let appointments = [];
+        let requestNumber = 0;
+
+
+        // =========================================
+        // DATE HELPERS
+        // =========================================
+
+        function dateKey(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+
+            return `${year}-${month}-${day}`;
+        }
+
+
+        // Format a JavaScript Date with its local timezone offset.
+        // Example: 2026-11-21T00:00:00-06:00
+
+        function toLocalISO(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+
+            const hours = String(date.getHours()).padStart(2, "0");
+            const minutes = String(date.getMinutes()).padStart(2, "0");
+
+            const offset = -date.getTimezoneOffset();
+
+            const sign = offset >= 0 ? "+" : "-";
+            const offsetHours = String(
+                Math.floor(Math.abs(offset) / 60)
+            ).padStart(2, "0");
+
+            const offsetMinutes = String(
+                Math.abs(offset) % 60
+            ).padStart(2, "0");
+
+            return `${year}-${month}-${day}T${hours}:${minutes}:00${sign}${offsetHours}:${offsetMinutes}`;
+        }
+
+
+        function formatTime(dateString) {
+            const date = new Date(dateString);
+
+            return date.toLocaleTimeString([], {
+                hour: "numeric",
+                minute: "2-digit"
+            });
+        }
+
+
+        function formatDate(date) {
+            return date.toLocaleDateString([], {
+                month: "short",
+                day: "numeric"
+            });
+        }
+
+
+        // =========================================
+        // FETCH APPOINTMENTS
+        // =========================================
+
+        async function loadAppointments() {
+
+            const currentRequest = ++requestNumber;
+
+            calendarError.hidden = true;
+
+            connectionStatus.textContent = "Loading...";
+            appointmentCount.textContent = "Loading appointments...";
+
+            calendarDays.innerHTML = `
+                <div class="calendar-loading">
+                    Fetching appointments...
+                </div>
+            `;
+
+            refreshButton.disabled = true;
+
+            try {
+
+                // Find the first day of the displayed month.
+                const firstDay = new Date(
+                    displayedMonth.getFullYear(),
+                    displayedMonth.getMonth(),
+                    1
+                );
+
+                // Find the last day of the displayed month.
+                const lastDay = new Date(
+                    displayedMonth.getFullYear(),
+                    displayedMonth.getMonth() + 1,
+                    0
+                );
+
+                // Expand the request to include the full calendar grid.
+                // JavaScript uses Sunday = 0, so convert to Monday = 0.
+
+                const gridStart = new Date(firstDay);
+                const startOffset = (firstDay.getDay() + 6) % 7;
+
+                gridStart.setDate(
+                    gridStart.getDate() - startOffset
+                );
+
+                const gridEnd = new Date(lastDay);
+                const endOffset = (7 - gridEnd.getDay()) % 7;
+
+                gridEnd.setDate(
+                    gridEnd.getDate() + endOffset + 1
+                );
+
+                const params = new URLSearchParams({
+                    company_id: COMPANY_ID,
+                    start_date: toLocalISO(gridStart),
+                    end_date: toLocalISO(gridEnd)
+                });
+
+                const requestURL = `${API_URL}?${params.toString()}`;
+
+                const response = await fetch(requestURL, {
+                    method: "GET",
+                    headers: {
+                        "Accept": "application/json"
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(
+                        `Server returned HTTP ${response.status}`
+                    );
+                }
+
+                const data = await response.json();
+
+                if (!Array.isArray(data)) {
+                    throw new Error(
+                        "The API returned an unexpected response format."
+                    );
+                }
+
+                // Ignore an older request if the user changed months.
+                if (currentRequest !== requestNumber) {
+                    return;
+                }
+
+                appointments = data;
+
+                connectionStatus.textContent = "Connected";
+                appointmentCount.textContent =
+                    `${appointments.length} appointment${appointments.length === 1 ? "" : "s"}`;
+
+                dateRange.textContent =
+                    `${formatDate(gridStart)} – ${formatDate(new Date(gridEnd.getTime() - 86400000))}`;
+
+                renderCalendar();
+
+            } catch (error) {
+
+                if (currentRequest !== requestNumber) {
+                    return;
+                }
+
+                console.error("Calendar API error:", error);
+
+                appointments = [];
+
+                connectionStatus.textContent = "Connection error";
+                appointmentCount.textContent = "Unable to load appointments";
+
+                calendarDays.innerHTML = `
+                    <div class="calendar-loading">
+                        Calendar data could not be loaded.
+                    </div>
+                `;
+
+                calendarError.hidden = false;
+                calendarError.textContent =
+                    `Could not retrieve appointments: ${error.message}`;
+
+            } finally {
+
+                if (currentRequest === requestNumber) {
+                    refreshButton.disabled = false;
+                }
+
+            }
+        }
+
+
+        // =========================================
+        // RENDER CALENDAR
+        // =========================================
+
+        function renderCalendar() {
+
+            monthTitle.textContent = displayedMonth.toLocaleDateString(
+                [],
+                {
+                    month: "long",
+                    year: "numeric"
+                }
+            );
+
+            calendarDays.innerHTML = "";
+
+            const firstDay = new Date(
+                displayedMonth.getFullYear(),
+                displayedMonth.getMonth(),
+                1
+            );
+
+            const lastDay = new Date(
+                displayedMonth.getFullYear(),
+                displayedMonth.getMonth() + 1,
+                0
+            );
+
+            const startOffset = (firstDay.getDay() + 6) % 7;
+
+            const gridStart = new Date(firstDay);
+            gridStart.setDate(
+                gridStart.getDate() - startOffset
+            );
+
+            // Group appointments by their local calendar date.
+
+            const appointmentsByDate = {};
+
+            appointments.forEach(appointment => {
+
+                if (!appointment.starts_at) {
+                    return;
+                }
+
+                const appointmentDate = new Date(
+                    appointment.starts_at
+                );
+
+                if (Number.isNaN(appointmentDate.getTime())) {
+                    return;
+                }
+
+                const key = dateKey(appointmentDate);
+
+                if (!appointmentsByDate[key]) {
+                    appointmentsByDate[key] = [];
+                }
+
+                appointmentsByDate[key].push(appointment);
+
+            });
+
+
+            // Always show complete weeks.
+
+            const totalDays = Math.ceil(
+                (startOffset + lastDay.getDate()) / 7
+            ) * 7;
+
+
+            for (let i = 0; i < totalDays; i++) {
+
+                const currentDate = new Date(gridStart);
+
+                currentDate.setDate(
+                    gridStart.getDate() + i
+                );
+
+                const key = dateKey(currentDate);
+
+                const isCurrentMonth =
+                    currentDate.getMonth() === displayedMonth.getMonth();
+
+                const isToday =
+                    key === dateKey(today);
+
+                const dayAppointments =
+                    appointmentsByDate[key] || [];
+
+
+                const dayCell = document.createElement("div");
+
+                dayCell.className = "calendar-day";
+
+                if (!isCurrentMonth) {
+                    dayCell.classList.add("other-month");
+                }
+
+                if (isToday) {
+                    dayCell.classList.add("is-today");
+                }
+
+
+                // Day number.
+
+                const dayNumber = document.createElement("div");
+
+                dayNumber.className = "calendar-day-number";
+                dayNumber.textContent = currentDate.getDate();
+
+                dayCell.appendChild(dayNumber);
+
+
+                // Appointment cards.
+
+                const appointmentList = document.createElement("div");
+
+                appointmentList.className = "calendar-appointment-list";
+
+                dayAppointments.sort((a, b) => {
+                    return new Date(a.starts_at) -
+                           new Date(b.starts_at);
+                });
+
+
+                dayAppointments.forEach(appointment => {
+
+                    const appointmentCard =
+                        document.createElement("div");
+
+                    appointmentCard.className = "calendar-appointment";
+
+                    if (appointment.status === "cancelled") {
+                        appointmentCard.classList.add("cancelled");
+                    }
+
+                    if (appointment.status === "completed") {
+                        appointmentCard.classList.add("completed");
+                    }
+
+
+                    const time = document.createElement("span");
+
+                    time.className = "appointment-time";
+                    time.textContent = formatTime(appointment.starts_at);
+
+
+                    const service = document.createElement("span");
+
+                    service.className = "appointment-service";
+                    service.textContent = appointment.service || "Appointment";
+
+
+                    const customer = document.createElement("span");
+
+                    customer.className = "appointment-customer";
+                    customer.textContent =
+                        appointment.customer_name || "Unknown customer";
+
+
+                    const provider = document.createElement("span");
+
+                    provider.className = "appointment-provider";
+                    provider.textContent =
+                        appointment.provider_name || "Unassigned";
+
+
+                    appointmentCard.append(
+                        time,
+                        service,
+                        customer,
+                        provider
+                    );
+
+                    appointmentList.appendChild(appointmentCard);
+
+                });
+
+
+                dayCell.appendChild(appointmentList);
+
+                calendarDays.appendChild(dayCell);
+
+            }
+
+        }
+
+
+        // =========================================
+        // NAVIGATION BUTTONS
+        // =========================================
+
+        previousMonthButton.addEventListener("click", () => {
+
+            displayedMonth.setMonth(
+                displayedMonth.getMonth() - 1
+            );
+
+            loadAppointments();
+
+        });
+
+
+        nextMonthButton.addEventListener("click", () => {
+
+            displayedMonth.setMonth(
+                displayedMonth.getMonth() + 1
+            );
+
+            loadAppointments();
+
+        });
+
+
+        todayButton.addEventListener("click", () => {
+
+            displayedMonth = new Date(
+                today.getFullYear(),
+                today.getMonth(),
+                1
+            );
+
+            loadAppointments();
+
+        });
+
+
+        refreshButton.addEventListener("click", () => {
+            loadAppointments();
+        });
+
+
+        // =========================================
+        // INITIALIZE
+        // =========================================
+
+        loadAppointments();
+
+    </script>
 
 </body>
 </html>
