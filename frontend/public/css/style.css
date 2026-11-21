@@ -283,7 +283,7 @@ main {
     color: var(--primary);
 }
 
-/* Responsive */
+/* Responsive - main website */
 
 @media (max-width: 600px) {
     .container {
@@ -331,12 +331,11 @@ main {
         flex-direction: column;
         align-items: flex-start;
     }
+}
 
-   
 /* =========================================
    HILLCREST DIGITAL
    Appointment Calendar
-   Additional styles - appended
 ========================================= */
 
 .calendar-workspace {
@@ -487,6 +486,13 @@ main {
     border-bottom: 1px solid var(--border);
 }
 
+/* Calendar grid structure FIX */
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
 .calendar-weekday {
     background: #f8fafc;
     color: #718096;
@@ -499,6 +505,7 @@ main {
 }
 
 .calendar-days {
+    grid-column: 1 / -1;
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
 }
@@ -690,7 +697,6 @@ main {
     .appointment-provider {
         font-size: 9px;
     }
-
 }
 
 @media (max-width: 500px) {
@@ -755,7 +761,4 @@ main {
     .calendar-primary-button {
         flex: 1;
     }
-
-}
-
 }
